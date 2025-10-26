@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Barışalım mı? 💜</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#0f0a1e; --bg2:#2a0a3d; --pink:#ff3ea5; --purple:#7b2cbf; --gold:#ffd166;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:#fff; overflow:hidden; background: radial-gradient(1000px 700px at 20% 15%, #3b1a5b 0%, #170a29 45%, #0b0615 80%);
+    }
+    .bg-spin{position:fixed;inset:0;z-index:-1;opacity:.28; background:conic-gradient(from 180deg at 50% 50%, var(--purple), var(--pink), #ff8bd1, var(--purple)); animation: spin 28s linear infinite; filter:saturate(1.2)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .stage{min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; padding:24px}
+
+    h1{font-size:clamp(28px,7vw,68px); line-height:1.05; text-align:center; margin:0; font-weight:800;
+       text-shadow:0 0 12px rgba(255,62,165,.6), 0 0 30px rgba(123,44,191,.45)}
+
+    .btns{position:relative; width:min(680px,92vw); display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap}
+
+    button{cursor:pointer; border:none; border-radius:999px; padding:14px 26px; font-weight:700; letter-spacing:.4px; transition:transform .15s ease, box-shadow .15s ease, background .15s ease; font-size:clamp(16px,3.8vw,22px)}
+
+    #yesBtn{ background:linear-gradient(90deg, var(--pink), #ff7bd3); color:#10081c; box-shadow:0 10px 30px rgba(255,62,165,.35); transform:scale(1);}
+    #yesBtn:hover{ transform:translateY(-2px) scale(1.04); box-shadow:0 16px 42px rgba(255,62,165,.55)}
+
+    #noBtn{ position:fixed; background:#201138; color:#fff; border:1px solid rgba(255,255,255,.18); box-shadow:0 10px 30px rgba(0,0,0,.35);}
+
+    /* success overlay */
+    .overlay{position:fixed; inset:0; display:none; align-items:center; justify-content:center; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);}
+    .card{ background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06)); border:1px solid rgba(255,255,255,.18); padding:28px 26px; border-radius:24px; text-align:center; width:min(720px,92vw); box-shadow:0 10px 50px rgba(0,0,0,.5)}
+    .card h2{ margin:0 0 8px; font-weight:800; font-size:clamp(26px,6vw,44px)}
+    .card p{ margin:0 0 10px; opacity:.95}
+
+    /* heart confetti */
+    .confetti{position:fixed; inset:0; pointer-events:none; z-index:4}
+    .confetti span{position:absolute; font-size:18px; will-change:transform,opacity; filter:drop-shadow(0 0 6px rgba(255,255,255,.7))}
+
+    /* mobile safety zone for No button (keeps away from center text) */
+    .safe{position:fixed; left:50%; top:58%; transform:translate(-50%,-50%); width:60vw; height:38vh; z-index:-1}
+  </style>
+</head>
+<body>
+  <div class="bg-spin"></div>
+
+  <div class="stage" aria-live="polite">
+    <h1 id="q">Barışalım mı? 💞</h1>
+    <div class="btns">
+      <button id="yesBtn" aria-label="Evet, barışalım">Evet 💘</button>
+      <button id="noBtn" aria-label="Hayır">Hayır 😤</button>
+    </div>
+  </div>
+
+  <div class="safe" aria-hidden="true"></div>
+  <div class="confetti" id="confetti"></div>
+  <div class="overlay" id="overlay">
+    <div class="card">
+      <h2>Yaşasın! 🎉</h2>
+      <p>Şimdi git ve Yakup'la birlikte mutlu olun 💞</p>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const yes = document.getElementById('yesBtn');
+  const no = document.getElementById('noBtn');
+  const conf = document.getElementById('confetti');
+  const overlay = document.getElementById('overlay');
+  let evadeCount = 0;
+
+  function placeNoInitial(){
+    const r = yes.getBoundingClientRect();
+    const x = Math.min(window.innerWidth - r.width - 40, Math.max(20, r.right + 12));
+    const y = r.top + (Math.random()*40 - 20);
+    Object.assign(no.style, {left: x + 'px', top: y + 'px'});
+  }
+
+  function runAway(){
+    evadeCount++;
+    const growth = Math.min(1 + evadeCount*0.06, 1.9);
+    yes.style.transform = `scale(${growth})`;
+
+    const margin = 12;
+    const w = no.offsetWidth || 120;
+    const h = no.offsetHeight || 46;
+
+    const safe = document.querySelector('.safe').getBoundingClientRect();
+
+    let x, y, tries=0;
+    do {
+      x = Math.random() * (window.innerWidth - w - margin*2) + margin;
+      y = Math.random() * (window.innerHeight - h - margin*2) + margin;
+      tries++;
+    } while (tries < 60 && x>safe.left-w && x<safe.right && y>safe.top-h && y<safe.bottom);
+
+    Object.assign(no.style, {left: x + 'px', top: y + 'px'});
+  }
+
+  ['pointerover','pointerdown','touchstart','mouseenter'].forEach(evt => {
+    no.addEventListener(evt, (e)=>{ e.preventDefault(); runAway(); });
+  });
+
+  no.style.position = 'fixed';
+  placeNoInitial();
+  window.addEventListener('resize', placeNoInitial);
+
+  yes.addEventListener('click', ()=>{
+    overlay.style.display = 'flex';
+    burst(40);
+  });
+
+  function burst(n){
+    const emojis = ['💖','💘','💝','💕','💜','✨'];
+    for(let i=0;i<n;i++){
+      const s=document.createElement('span');
+      s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      s.style.left = Math.random()*100 + 'vw';
+      s.style.top = (40 + Math.random()*20) + 'vh';
+      const dur = 1400 + Math.random()*1200;
+      const dx = (Math.random()-.5)*120;
+      const dy = - (80 + Math.random()*160);
+      conf.appendChild(s);
+      s.animate([
+        { transform:'translate(0,0) scale(1)', opacity:1 },
+        { transform:`translate(${dx}px, ${dy}px) scale(${1.3+Math.random()*0.4})`, opacity:0 }
+      ], { duration: dur, easing:'cubic-bezier(.2,.7,.2,1)' });
+      setTimeout(()=> s.remove(), dur);
+    }
+  }
+})();
+</script>
+</body>
+</html>
